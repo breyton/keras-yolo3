@@ -66,13 +66,17 @@ class YOLO(object):
         num_anchors = len(self.anchors)
         num_classes = len(self.class_names)
         is_tiny_version = num_anchors==6 # default setting
-        try:
-            self.yolo_model = load_model(model_path, compile=False)
-        except:
+        if is_tiny_version:
             self.yolo_model = tiny_yolo_body(Input(shape=(None,None,3)), num_anchors//2, num_classes) \
                 if is_tiny_version else yolo_body(Input(shape=(None,None,3)), num_anchors//3, num_classes)
             self.yolo_model.load_weights(self.model_path) # make sure model, anchors and classes match
+            #model = create_tiny_model(input_shape, anchors, num_classes,
+            #   freeze_body=2, weights_path='model_data/yolov3-tiny.h5')
         else:
+            self.yolo_model = load_model(model_path, compile=False)
+            #model = create_model(input_shape, anchors, num_classes,
+            #    freeze_body=2, weights_path='model_data/yolo_weights.h5') # make sure you know what you freeze        
+        except:
             assert self.yolo_model.layers[-1].output_shape[-1] == \
                 num_anchors/len(self.yolo_model.output) * (num_classes + 5), \
                 'Mismatch between model and given anchor and class sizes'
